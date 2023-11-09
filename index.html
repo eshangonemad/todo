@@ -2,55 +2,47 @@
 <html lang="en" >
 <head>
   <meta charset="UTF-8">
-  <title>To-Do List</title>
-  <link rel="stylesheet" href="./style.css">
+  <title>CodePen - #Vue.js - To do list + localStorage</title>
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/css/bootstrap.css'>
+<link rel='stylesheet' href='https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.css'>
+<link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Noto+Sans+TC|Nunito'><link rel="stylesheet" href="./style.css">
 
 </head>
 <body>
 <!-- partial:index.partial.html -->
 <div id="app">
-    <section class="todo-wrapper">
-      <h1 class="todo-title">{{ today.day }}<br>{{ today.date }}</h1>
-      <form @keydown.enter.prevent="">
-        <input type="text" class="input-todo" v-bind:class="{ active: new_todo }" placeholder="Finish Biology Notes" v-model="new_todo" v-on:keyup.enter="addItem">
-        <div class="btn btn-add" v-bind:class="{ active: new_todo }"  @click="addItem">+</div>
-      </form>
-
-      <div v-if="pending.length > 0">
-        <p class="status busy">You have {{ pending.length }} pending item<span v-if="pending.length>1">s</span></p>
-        <transition-group name="todo-item" tag="ul" class="todo-list">
-          <li v-for="(item, index) in pending" v-bind:key="item.title">
-            <input class="todo-checkbox" v-bind:id="'item_' + item.id" v-model="item.done" type="checkbox">
-            <label v-bind:for="'item_' + item.id"></label>
-            <span class="todo-text">{{ item.title }}</span>
-            <span class="delete" @click="deleteItem(item)"></span>
-          </li>
-        </transition>  
-      </div> 
-
-      <transition name="slide-fade">
-        <p class="status free" v-if="!pending.length" ><img src="https://nourabusoud.github.io/vue-todo-list/images/beer_celebration.svg" alt="celebration">Time to chill!  You have no to-do's.</p> 
-      </transition> 
-
-      <div v-if="completed.length > 0 && showComplete">
-        <p class="status">Completed tasks: {{ completedPercentage }}</p>
-        <transition-group name="todo-item" tag="ul" class="todo-list archived">
-          <li v-for="(item, index) in completed" v-bind:key="item.title">
-            <input class="todo-checkbox" v-bind:id="'item_' + item.id" v-model="item.done" type="checkbox">
-            <label v-bind:for="'item_' + item.id"></label>
-            <span class="todo-text">{{ item.title }}</span>
-            <span class="delete" @click="deleteItem(item)"></span>
-          </li>
-        </transition>  
-      </div>  
-      <div class="control-buttons">
-        <div class="btn btn-secondary" v-if="completed.length > 0" @click="toggleShowComplete"><span v-if="!showComplete">Show</span><span v-else>Hide</span> Complete</div>
-        <div class="btn btn-secondary" v-if="todoList.length > 0" @click="clearAll">Clear All</div>
-      </div>
+  <div class="container">
+    <section class="header">
+      <div class="text"><span class="day" v-text="day"> </span><span class="yearMonth"><b class="year" v-text="year"></b><b class="month" v-text="month"> </b></span><span v-text="timeMessage"></span><span class="week" v-text="currentWeek"> </span></div>
     </section>
+    <section class="addTask"> 
+      <input placeholder="+ Add task" v-model="newTodo" @keyup.enter="addTodo"/><a class="btn btn--add" @click="addTodo">+</a>
+    </section>
+    <section class="content">
+      <ul class="todoList">
+        <li class="list-group-item" v-for="(item, key) in filteredTodos" @dblclick="editTodo(item)">
+          <div class="d-flex" v-if="item.id !== cacheTodo.id">
+            <div class="form-check">
+              <label class="form-check-label" :class="{'completed': item.completed }" :for="item.id">{{ item.title }}
+                <input class="form-check-input" type="checkbox" v-model="item.completed" :id="item.id"/><span class="checkmark"></span>
+              </label>
+            </div>
+            <button class="close ml-auto" type="button" aria-label="Close" @click="removeTodo(item)"><span aria-hidden="true">&times;</span></button>
+          </div>
+          <input class="form-control" type="text" v-model="cacheTodoTitle" @keyup.esc="cancelEdit()" @keyup.enter="doneEdit(item)" v-if="item.id === cacheTodo.id"/>
+        </li>
+      </ul>
+    </section>
+    <div class="filters">
+      <button class="btn filters__btn filters__btn--all" :class="{'active': visibility == 'all'}" @click="visibility = 'all'">All</button>
+      <button class="btn filters__btn filters__btn--complete" :class="{'active': visibility == 'completed'}" @click="visibility = 'completed'">Complete</button>
+      <button class="btn filters__btn filters__btn--incomplete" :class="{'active': visibility == 'doing'}" @click="visibility = 'doing'">Incomplete</button>
+    </div>
   </div>
+</div>
 <!-- partial -->
-  <script src='https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.3/vue.min.js'></script><script  src="./script.js"></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.16/vue.min.js'></script><script  src="./script.js"></script>
 
 </body>
 </html>
