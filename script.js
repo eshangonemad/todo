@@ -1,63 +1,93 @@
-// IEFE
-(() => { 
-  // state variables
-  let toDoListArray = [];
-  // ui variables
-  const form = document.querySelector(".form"); 
-  const input = form.querySelector(".form__input");
-  const ul = document.querySelector(".toDoList"); 
+new Vue({
+  el: '#app',
+  data() {
+    return {
+      todoList: [
+        
+      ],
+      new_todo: '',
+      showComplete: false,
+    };
+  },
+  computed: {},
+  mounted() {
+    this.getTodos();
+  },
+  watch: {
+    todoList: {
+      handler: function(updatedList) {
+        localStorage.setItem('todo_list', JSON.stringify(updatedList));
+      },
+      deep: true
+    }
+  },
+  computed:{
+    pending: function() {
+      return this.todoList.filter(function(item) {
+        return !item.done;
+      })
+    },
+    completed: function() {
+      return this.todoList.filter(function(item) {
+        return item.done;
+      }); 
+    },
+    completedPercentage: function() {
+      return (Math.floor((this.completed.length / this.todoList.length) * 100)) + "%";
+    },
+    today: function() {
+      var weekday = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+      var today = new Date();
+      var dd = today.getDate();
+      var mm = today.getMonth()+1; //January is 0!
+      var yyyy = today.getFullYear();
 
-  // event listeners
-  form.addEventListener('submit', e => {
-    // prevent default behaviour - Page reload
-    e.preventDefault();
-    // give item a unique ID
-    let itemId = String(Date.now());
-    // get/assign input value
-    let toDoItem = input.value;
-    //pass ID and item into functions
-    addItemToDOM(itemId , toDoItem);
-    addItemToArray(itemId, toDoItem);
-    // clear the input box. (this is default behaviour but we got rid of that)
-    input.value = '';
-  });
-  
-  ul.addEventListener('click', e => {
-    let id = e.target.getAttribute('data-id')
-    if (!id) return // user clicked in something else      
-    //pass id through to functions
-    removeItemFromDOM(id);
-    removeItemFromArray(id);
-  });
-  
-  // functions 
-  function addItemToDOM(itemId, toDoItem) {    
-    // create an li
-    const li = document.createElement('li')
-    li.setAttribute("data-id", itemId);
-    // add toDoItem text to li
-    li.innerText = toDoItem
-    // add li to the DOM
-    ul.appendChild(li);
-  }
-  
-  function addItemToArray(itemId, toDoItem) {
-    // add item to array as an object with an ID so we can find and delete it later
-    toDoListArray.push({ itemId, toDoItem});
-    console.log(toDoListArray)
-  }
-  
-  function removeItemFromDOM(id) {
-    // get the list item by data ID
-    var li = document.querySelector('[data-id="' + id + '"]');
-    // remove list item
-    ul.removeChild(li);
-  }
-  
-  function removeItemFromArray(id) {
-    // create a new toDoListArray with all li's that don't match the ID
-    toDoListArray = toDoListArray.filter(item => item.itemId !== id);
-    console.log(toDoListArray);
-  }
-  
-})();
+      if(dd<10) {
+          dd = '0'+dd
+      } 
+
+      if(mm<10) {
+          mm = '0'+mm
+      } 
+
+      today = {
+        day: weekday[today.getDay()],
+        date:  mm + '-' + dd + '-' + yyyy,
+      }
+
+      return(today);
+    }
+  },
+  methods: {
+    // get all todos when loading the page
+    getTodos() {
+      if (localStorage.getItem('todo_list')) {
+        this.todoList = JSON.parse(localStorage.getItem('todo_list'));
+      }
+    },
+    // add a new item
+    addItem() {
+      // validation check
+      if (this.new_todo) {
+        this.todoList.unshift({
+          id: this.todoList.length,
+          title: this.new_todo,
+          done: false,
+        });
+      }
+      // reset new_todo
+      this.new_todo = '';
+      // save the new item in localstorage
+      return true;
+    },
+    deleteItem(item) {
+      this.todoList.splice(this.todoList.indexOf(item), 1);
+    },
+    toggleShowComplete() {
+      this.showComplete = !this.showComplete;
+    },
+    clearAll() {
+      this.todoList = [];
+    }
+  },
+});
